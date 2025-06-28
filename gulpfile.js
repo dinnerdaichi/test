@@ -5,7 +5,9 @@ const ejs = require('gulp-ejs');
 const rename = require('gulp-rename');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
+const replace = require('gulp-replace');
 const argv = yargs(hideBin(process.argv)).argv;
+
 
 // Sassファイルとディレクトリの自動生成タスク
 gulp.task('create', function (done) {
@@ -149,9 +151,6 @@ gulp.task('create', function (done) {
   const indexFilePath = path.join(__dirname, 'index.html');
   fs.writeFileSync(indexFilePath, ''); // 空ファイルを作成
 
-  // ルート直下に.gitignoreを作成
-  const gitignorePath = path.join(__dirname, '.gitignore');
-  fs.writeFileSync(gitignorePath, 'node_modules'); // node_modulesをignore
 
   // jsフォルダにscript.jsを作成（空ファイル）
   const scriptFilePath = path.join(__dirname, 'assets', 'js', 'script.js');
@@ -185,4 +184,23 @@ gulp.task('default', () => {
   }
   tasks.push('watch');
   return gulp.series(...tasks)();
+});
+
+
+// 上書きで /asset/img/ を WordPressのテンプレタグに置換！
+gulp.task('img', function () {
+  return gulp.src('**/*.php') // ← 対象のファイル場所
+    .pipe(replace(/src=["']\/asset\/img\/(.*?)["']/g, (match, p1) => {
+      // すでに置換済みならスキップするよ！
+      if (match.includes('get_template_directory_uri')) return match;
+      return `src="<?php echo get_template_directory_uri(); ?>/asset/img/${p1}"`;
+    }))
+    .pipe(gulp.dest('./')); // ← 上書き保存！
+});
+
+gulp.task('remove', function () {
+  return gulp.src('**/*.scss', { base: './' })  // 元の場所を維持
+    // //コメント行＋その行の空白もぜんぶ削除（空行も一緒に消えるよ）
+    .pipe(replace(/^\s*\/\/.*\n/gm, ''))
+    .pipe(gulp.dest('./'));  // 元の場所に上書き保存！
 });

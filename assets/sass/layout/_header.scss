@@ -1,0 +1,12 @@
+@use "../foundation/mixin" as m;
+@use "../foundation/functions" as *;
+
+
+header{
+
+  letter-spacing: normal;
+  // -ms-text-kashida-space: 0%;
+  margin-top: 60px;
+  // padding: 0;
+  z-index: inherit;
+}
